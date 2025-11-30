@@ -8,57 +8,37 @@
 
 <body>
 
-  <div id="video-overlay" class="overlay video-fullscreen">
-    <button id="video-close-button" class="video-close-button">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-      </svg>      
-    </button>
-    <video autoplay loop muted>
-      <source src="images/animacao_braco.mp4" type="video/mp4">
-      Seu navegador não suporta o elemento de vídeo.
-    </video>
-  </div>
-
   <div id="container">
     <div id="canvas-container">
       <canvas id="three-canvas"></canvas>
     </div>
+
+
+
+      <!-- Menu contextual -->
+    <div id="contextMenu">
+      <button id="start">Iniciar</button>
+      <button id="pause">Pausar</button>
+      <button id="resume">Continuar</button>
+      <button id="restart">Reiniciar</button>
+      <button id="stop">Parar</button>
+<hr>
+
+      <button id="open_close_lid">Abrir/fechar tampa</button>
+      <button id="rotate_stop_spin">Rodar/parar disco</button>
+
+      <button id="position_remove_neddle">Posicionar/remover agulha</button>
+
+
+    </div>
   </div>
 
-  <button id="help-button">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-      <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.94 6.94a.75.75 0 1 1-1.061-1.061 3 3 0 1 1 2.871 5.026v.345a.75.75 0 0 1-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 1 0 8.94 6.94ZM10 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
-    </svg>
-    <span>Ajuda</span>
-  </button>
+  
 
-  <div id="overlay" class="overlay">
-    <button id="annotations-toggle" class="annotations-toggle" aria-pressed="false">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-        <path fill-rule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z" clip-rule="evenodd" />
-      </svg>
-      <span>Mostrar Sem Anotações</span>
-    </button>
-    <button id="help-close-button" class="help-close-button" aria-label="Fechar ajuda">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-      </svg>      
-    </button>
-    <img src="images/informacao_comfiltros.png" alt="Imagem de ajuda">
-    <img id="image-container" src="images/informacao_semfiltros.png" alt="Informação sem filtros">
-    <button id="video-button">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd" />
-      </svg>      
-      <span>Demonstração da Animação do Braço do Gira-discos</span>
-    </button>
-  </div>
 
   <!-- Scripts -->
   <script src="/node_modules/es-module-shims.js"></script>
-  <script src="./scripts/overlay.js" type="module"></script>
+<!--<script src="./scripts/overlay.js" type="module"></script>-->
   <script type="importmap">
   {
     "imports": {

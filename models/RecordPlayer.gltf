@@ -312,41 +312,55 @@
 				{
 					"sampler":0,
 					"target":{
-						"node":13,
-						"path":"translation"
+						"node":6,
+						"path":"rotation"
 					}
-				},
+				}
+			],
+			"name":"OpenCover",
+			"samplers":[
 				{
-					"sampler":1,
+					"input":82,
+					"interpolation":"LINEAR",
+					"output":83
+				}
+			]
+		},
+		{
+			"channels":[
+				{
+					"sampler":0,
 					"target":{
 						"node":13,
 						"path":"rotation"
-					}
-				},
-				{
-					"sampler":2,
-					"target":{
-						"node":13,
-						"path":"scale"
 					}
 				}
 			],
 			"name":"RotateDisk",
 			"samplers":[
 				{
-					"input":82,
-					"interpolation":"STEP",
-					"output":83
-				},
-				{
 					"input":84,
 					"interpolation":"LINEAR",
 					"output":85
-				},
+				}
+			]
+		},
+		{
+			"channels":[
 				{
-					"input":82,
-					"interpolation":"STEP",
-					"output":86
+					"sampler":0,
+					"target":{
+						"node":18,
+						"path":"rotation"
+					}
+				}
+			],
+			"name":"PosicionarAgulha",
+			"samplers":[
+				{
+					"input":86,
+					"interpolation":"LINEAR",
+					"output":87
 				}
 			]
 		}
@@ -1702,9 +1716,9 @@
 		{
 			"bufferView":82,
 			"componentType":5126,
-			"count":2,
+			"count":171,
 			"max":[
-				1.6666666666666667
+				7.125
 			],
 			"min":[
 				0.041666666666666664
@@ -1714,18 +1728,18 @@
 		{
 			"bufferView":83,
 			"componentType":5126,
-			"count":2,
-			"type":"VEC3"
+			"count":171,
+			"type":"VEC4"
 		},
 		{
 			"bufferView":84,
 			"componentType":5126,
 			"count":40,
 			"max":[
-				1.6666666666666667
+				4.75
 			],
 			"min":[
-				0.041666666666666664
+				3.125
 			],
 			"type":"SCALAR"
 		},
@@ -1738,8 +1752,20 @@
 		{
 			"bufferView":86,
 			"componentType":5126,
-			"count":2,
-			"type":"VEC3"
+			"count":112,
+			"max":[
+				6.208333333333333
+			],
+			"min":[
+				1.5833333333333333
+			],
+			"type":"SCALAR"
+		},
+		{
+			"bufferView":87,
+			"componentType":5126,
+			"count":112,
+			"type":"VEC4"
 		}
 	],
 	"bufferViews":[
@@ -2237,28 +2263,33 @@
 		},
 		{
 			"buffer":0,
-			"byteLength":8,
+			"byteLength":684,
 			"byteOffset":421476
 		},
 		{
 			"buffer":0,
-			"byteLength":24,
-			"byteOffset":421484
+			"byteLength":2736,
+			"byteOffset":422160
 		},
 		{
 			"buffer":0,
 			"byteLength":160,
-			"byteOffset":421508
+			"byteOffset":424896
 		},
 		{
 			"buffer":0,
 			"byteLength":640,
-			"byteOffset":421668
+			"byteOffset":425056
 		},
 		{
 			"buffer":0,
-			"byteLength":24,
-			"byteOffset":422308
+			"byteLength":448,
+			"byteOffset":425696
+		},
+		{
+			"buffer":0,
+			"byteLength":1792,
+			"byteOffset":426144
 		}
 	],
 	"samplers":[
@@ -2269,7 +2300,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":422332,
+			"byteLength":427936,
 			"uri":"RecordPlayer.bin"
 		}
 	]

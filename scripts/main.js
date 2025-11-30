@@ -1,148 +1,310 @@
-import * as THREE from "three"
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-// Criar cena do threeJS
-let cena = new THREE.Scene()
-window.cena = cena
+// ========================
+// Cena, câmera, renderer
+// ========================
+const cena = new THREE.Scene();
+window.cena = cena;
 
-// Criar Renderer
-const threeCanvas = document.getElementById('three-canvas');
+const threeCanvas = document.getElementById("three-canvas");
 
-// Crie o renderer com antialias e pixel ratio do dispositivo para bordas mais nítidas
-let renderer = new THREE.WebGLRenderer({canvas: threeCanvas, antialias: true})
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+const renderer = new THREE.WebGLRenderer({
+  canvas: threeCanvas,
+  antialias: true,
+});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setSize(threeCanvas.clientWidth, threeCanvas.clientHeight);
-renderer.setClearColor(0xffffff); // Cor de Fundo (Branco neste caso concreto)
+renderer.setClearColor(0xffffff);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-// Ativar renderização de mapa de sombras
-renderer.shadowMap.enabled = true
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
+const camera = new THREE.PerspectiveCamera(
+  60,
+  threeCanvas.clientWidth / threeCanvas.clientHeight,
+  0.01,
+  1000
+);
+camera.position.set(0.739, 0.356, -0.038);
+camera.rotation.set(
+  THREE.MathUtils.degToRad(-96.6),
+  THREE.MathUtils.degToRad(72.89),
+  THREE.MathUtils.degToRad(96.9)
+);
 
-// Criar e preparar câmara
-let camara = new THREE.PerspectiveCamera(60, threeCanvas.clientWidth / threeCanvas.clientHeight, 0.01, 1000)
-let controls = new OrbitControls(camara, renderer.domElement)
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0);
+controls.update();
 
-//Posicão Padrão da Camara
-camara.position.set(0.739, 0.356, -0.038)
-camara.rotation.set(
-    THREE.MathUtils.degToRad(-96.60),
-    THREE.MathUtils.degToRad(72.89),
-    THREE.MathUtils.degToRad(96.90)
-)
-
-// Usar a origem como alvo inicial dos controlos e atualizar os controlos para que a visualização corresponda
-controls.target.set(0, 0, 0)
-controls.update()
-
-//Adicionar luz ambiente
 const ambientLight = new THREE.AmbientLight(0xffffff, 3);
 cena.add(ambientLight);
 
-// Mantenha o renderer e a câmara responsivos ao tamanho da janela
+// ========================
+// Responsividade
+// ========================
 function onWindowResize() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+  const width = window.innerWidth;
+  const height = window.innerHeight;
 
-    // Redimensiona o estilo do canvas e o buffer de desenho do renderer
-    threeCanvas.style.width = width + 'px';
-    threeCanvas.style.height = height + 'px';
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-    camara.aspect = width / height;
-    camara.updateProjectionMatrix();
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
 }
-
-// Adicionar listener de redimensionamento
-window.addEventListener('resize', onWindowResize, { passive: true });
-
-// chame uma vez para definir o tamanho correto
+window.addEventListener("resize", onWindowResize, { passive: true });
 onWindowResize();
 
-// Carregar modelo, ajustar luzes, e preparar cena exemplo
-new GLTFLoader().load(
-    //Caminho do Modelo
-    'models/RecordPlayer.glb',
-    function (gltf) {
-        // Informação: 1 Unidade = 0.1m = 1 dm = 10 cm
-        cena.add(gltf.scene)
+// ========================
+// Singleton: AnimacaoManager
+// ========================
+const AnimacaoManager = (function () {
+  let instance;
 
-        // Ativar sombras em todas as malhas do modelo carregado para que projetem e recebam sombras
-        gltf.scene.traverse((obj) => {
-            if (obj.isMesh) {
-                obj.castShadow = true
-                obj.receiveShadow = true
-                // Garantir que o material seja atualizado se necessário
-                if (Array.isArray(obj.material)) {
-                    obj.material.forEach(m => { 
-                        if (m) {
-                            // Corrigir transparência para materiais que devem ser translúcidos
-                            if (m.opacity < 1 || m.alphaMode === 'BLEND' || m.transmission > 0) {
-                                m.transparent = true;
-                                m.depthWrite = false;
-                            }
-                            m.needsUpdate = true;
-                        }
-                    })
-                } else if (obj.material) {
-                    // Corrigir transparência para materiais que devem ser translúcidos
-                    if (obj.material.opacity < 1 || obj.material.alphaMode === 'BLEND' || obj.material.transmission > 0) {
-                        obj.material.transparent = true;
-                        obj.material.depthWrite = false;
-                    }
-                    obj.material.needsUpdate = true
-                }
-            }
-        })
+  function init() {
+    const mixers = [];
+    const actions = {};
+    let currentSequence = [];
+    let sequenceIndex = 0;
+    let currentAction = null;
 
-        // Calcular o centro da caixa delimitadora do modelo e recentralizar os controlos/câmara
-        try {
-            const bbox = new THREE.Box3().setFromObject(gltf.scene)
-            const modelCenter = new THREE.Vector3()
-            bbox.getCenter(modelCenter)
+    return {
+      currentAction, // action atual
+      getAction: (name) => actions[name],
+      registerMixer: (mixer) => mixers.push(mixer),
+      registerAction: (name, action) => {
+        actions[name] = action;
+        action.clampWhenFinished = true;
+        action.loop = THREE.LoopOnce;
+      },
 
-            // Mover controls.target para o centro do modelo para que a órbita seja em torno do objeto
-            controls.target.copy(modelCenter)
+      playAction: (name) => {
+        const action = actions[name];
+        if (!action) return console.warn(`Ação ${name} não encontrada`);
+        currentAction = action;
+        action.play();
+      },
 
-            // Manter o deslocamento da câmara que foi configurado anteriormente, mas torná-lo relativo ao centro do modelo
-            const currentCamPos = camara.position.clone()
-            const offsetFromOrigin = currentCamPos.clone()
-
-            // Nova posição absoluta da câmara = modelCenter + offsetFromOrigin
-            const newCamPos = modelCenter.clone().add(offsetFromOrigin)
-            camara.position.copy(newCamPos)
-            camara.lookAt(modelCenter)
-            controls.update()
-
-            console.log('Camera repositioned to:', camara.position)
-        } catch (err) {
-            console.warn('Could not compute model center or reposition camera:', err)
+      pauseCurrent: () => {
+        if (currentAction) currentAction.paused = true;
+      },
+      resumeCurrent: () => {
+        if (currentAction) currentAction.paused = false;
+      },
+      stopCurrent: () => {
+        if (currentAction) currentAction.stop();
+      },
+      restartCurrent: () => {
+        if (currentAction) {
+          currentAction.stop();
+          currentAction.reset();
+          currentAction.play();
         }
-    }
-)
+      },
 
-// Renderizar/Animar
-{
-    let delta = 0;
-    let relogio = new THREE.Clock();
-    let latencia_minima = 1 / 60; // para 60 frames por segundo 
-    animar()
-    function animar() {
-        requestAnimationFrame(animar);
-        delta += relogio.getDelta();
+      playSequence: (seq) => {
+  if (!seq || seq.length === 0) return;
 
-        if (delta < latencia_minima) return;
+  // **Stop e reset de qualquer ação atual**
+  if (currentAction) {
+    currentAction.stop();
+    currentAction.reset();
+    currentAction.timeScale = 1; // garante que toque para frente
+  }
 
-        // Atualize os helpers de luz, se existirem
-        cena.traverse((child) => {
-            if (child instanceof THREE.PointLightHelper || child instanceof THREE.SpotLightHelper || child instanceof THREE.DirectionalLightHelper) {
-                child.update();
-            }
+  // **Remove todos os listeners de finished antigos**
+  mixers.forEach((mixer) => {
+    mixer._listeners = {}; // limpa todos os listeners antigos
+  });
+
+  // Prepara a nova sequência
+  currentSequence = seq.filter((name) => actions[name]);
+  sequenceIndex = 0;
+  instance._playNextInSequence();
+},
+
+
+      _playNextInSequence: () => {
+        if (sequenceIndex >= currentSequence.length) return;
+
+        const name = currentSequence[sequenceIndex];
+
+        console.log(`Iniciando ação da sequência: ${name}`);
+        
+        const action = actions[name];
+        if (!action) {
+          sequenceIndex++;
+          instance._playNextInSequence();
+          return;
+        }
+
+        currentAction = action;
+        action.play();
+
+        const mixer = window.mixer;
+        const callback = (e) => {
+          if (e.action === action) {
+            mixer.removeEventListener("finished", callback);
+            sequenceIndex++;
+            instance._playNextInSequence();
+          }
+        };
+        mixer.addEventListener("finished", callback);
+      },
+
+      update: (delta) => mixers.forEach((m) => m.update(delta)),
+    };
+  }
+
+  return {
+    getInstance: () => {
+      if (!instance) instance = init();
+      return instance;
+    },
+  };
+})();
+
+// ========================
+// Carregar GLTF e registrar animações
+// ========================
+const animManager = AnimacaoManager.getInstance();
+
+new GLTFLoader().load("models/RecordPlayer.gltf", (gltf) => {
+
+
+    
+
+
+  const mixer = new THREE.AnimationMixer(gltf.scene);
+  window.mixer = mixer;
+  animManager.registerMixer(mixer);
+
+  gltf.animations.forEach((clip) => {
+    const action = mixer.clipAction(clip);
+    animManager.registerAction(clip.name, action);
+    console.log("Animação carregada:", clip.name);
+  });
+
+  cena.add(gltf.scene);
+
+  // sombras
+  gltf.scene.traverse((obj) => {
+    if (obj.isMesh) {
+      obj.castShadow = true;
+      obj.receiveShadow = true;
+      if (Array.isArray(obj.material)) {
+        obj.material.forEach((m) => {
+          if (
+            m &&
+            (m.opacity < 1 || m.alphaMode === "BLEND" || m.transmission > 0)
+          ) {
+            m.transparent = true;
+            m.depthWrite = false;
+            m.needsUpdate = true;
+          }
         });
-
-        renderer.render(cena, camara)
-
-        delta = delta % latencia_minima;
+      } else if (
+        obj.material &&
+        (obj.material.opacity < 1 ||
+          obj.material.alphaMode === "BLEND" ||
+          obj.material.transmission > 0)
+      ) {
+        obj.material.transparent = true;
+        obj.material.depthWrite = false;
+        obj.material.needsUpdate = true;
+      }
     }
+  });
+
+  // centralizar câmera
+  const bbox = new THREE.Box3().setFromObject(gltf.scene);
+  const modelCenter = new THREE.Vector3();
+  bbox.getCenter(modelCenter);
+  controls.target.copy(modelCenter);
+  camera.position.copy(modelCenter.clone().add(camera.position));
+  camera.lookAt(modelCenter);
+  controls.update();
+
+  // Sequência principal e reversa
+  const sequence = ["OpenCover", "PosicionarAgulha", "RotateDisk"];
+  const reverseSequence = ["RotateDisk", "PosicionarAgulha", "OpenCover"];
+
+  document
+    .getElementById("start")
+    ?.addEventListener("click", () => animManager.playSequence(sequence));
+  document
+    .getElementById("reverse")
+    ?.addEventListener("click", () =>
+      animManager.playSequence(reverseSequence)
+    );
+
+  document
+    .getElementById("pause")
+    ?.addEventListener("click", () => animManager.pauseCurrent());
+  document
+    .getElementById("resume")
+    ?.addEventListener("click", () => animManager.resumeCurrent());
+  document
+    .getElementById("stop")
+    ?.addEventListener("click", () => animManager.stopCurrent());
+  document
+    .getElementById("restart")
+    ?.addEventListener("click", () => animManager.restartCurrent());
+
+  // ========================
+  // Toggle individual (frente/reverso)
+  // ========================
+  const animStates = {
+    OpenCover: false,
+    PosicionarAgulha: false,
+    RotateDisk: false,
+  };
+
+  function toggleAction(name) {
+    const action = animManager.getAction(name);
+    if (!action) return;
+
+    // Para a action atual se for diferente
+    if (animManager.currentAction && animManager.currentAction !== action) {
+      animManager.currentAction.stop();
+    }
+
+    if (!animStates[name]) {
+      action.time = 0;
+      action.timeScale = 1;
+    } else {
+      action.time = action.getClip().duration;
+      action.timeScale = -1;
+    }
+
+    action.play();
+    animManager.currentAction = action;
+    animStates[name] = !animStates[name];
+
+    console.log(`${name} toggled to ${animStates[name]}`);
+  }
+
+  document
+    .getElementById("open_close_lid")
+    ?.addEventListener("click", () => toggleAction("OpenCover"));
+  document
+    .getElementById("position_remove_needle")
+    ?.addEventListener("click", () => toggleAction("PosicionarAgulha"));
+  document
+    .getElementById("rotate_stop_spin")
+    ?.addEventListener("click", () => toggleAction("RotateDisk"));
+});
+
+// ========================
+// Loop de animação
+// ========================
+const clock = new THREE.Clock();
+function animar() {
+  requestAnimationFrame(animar);
+  const delta = clock.getDelta();
+  animManager.update(delta);
+
+  renderer.render(cena, camera);
 }
+animar();
