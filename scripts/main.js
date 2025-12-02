@@ -104,6 +104,10 @@ const AnimacaoManager = (function () {
         playNext();
       },
 
+      startCurrent: () => {
+        if (currentAction) currentAction.paused = true;
+      },
+
       pauseCurrent: () => {
         if (currentAction) currentAction.paused = true;
       },
@@ -252,6 +256,44 @@ function configurarBotoesAnimacao() {
   document
     .getElementById("restart")
     ?.addEventListener("click", () => animManager.restartCurrent());
+  document
+    .getElementById("open_close_lid")
+    ?.addEventListener("click", () => toggleAction("OpenCover"));
+
+  document
+    .getElementById("rotate_stop_spin")
+    ?.addEventListener("click", () => toggleAction("RotateDisk"));
+
+  document
+    .getElementById("position_remove_neddle")
+    ?.addEventListener("click", () => toggleAction("PosicionarAgulha"));
+}
+
+// ========================
+// Tocar animações individuais
+// ========================
+function toggleAction(name) {
+  const action = animManager.getAction(name);
+  if (!action) return console.warn("Ação não encontrada:", name);
+
+  // Se outra ação está ativa, para antes
+  if (animManager.currentAction && animManager.currentAction !== action) {
+    animManager.currentAction.stop();
+  }
+
+  // Alterna direção da animação
+  if (!action.isRunning) {
+    action.time = 0;
+    action.timeScale = 1;
+  } else {
+    action.timeScale *= -1;
+  }
+
+  action.reset();
+  action.play();
+  animManager.currentAction = action;
+
+  action.isRunning = !action.isRunning;
 }
 
 // ========================
