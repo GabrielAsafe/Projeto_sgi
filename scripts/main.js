@@ -62,6 +62,53 @@ const AnimacaoManager = (function () {
     const animationStates = {};
 
     return {
+      toggleAction: (name) => {
+        const action = actions[name];
+        if (!action) return console.warn("Ação não encontrada:", name);
+
+        if (animationStates[name] === undefined) {
+          animationStates[name] = false;
+        }
+
+        currentAction = action;
+
+        // CASO ESPECIAL: DISCO
+        if (name === "RotateDisk") {
+          if (!animationStates[name]) {
+            action.stop();
+            action.reset();
+            action.enabled = true;
+            action.setLoop(THREE.LoopRepeat);
+            action.timeScale = 1;
+            action.play();
+            animationStates[name] = true;
+          } else {
+            action.stop();
+            animationStates[name] = false;
+          }
+          return;
+        }
+
+        // CASO NORMAL
+        action.stop();
+        action.reset();
+        action.enabled = true;
+        action.setLoop(THREE.LoopOnce);
+        action.clampWhenFinished = true;
+
+        if (!animationStates[name]) {
+          action.timeScale = 1;
+          action.time = 0;
+          action.play();
+          animationStates[name] = true;
+        } else {
+          action.timeScale = -1;
+          action.time = action.getClip().duration;
+          action.play();
+          animationStates[name] = false;
+        }
+      },
+
       // ===== MIXER =====
       setMixer: (m) => {
         mixer = m;
@@ -100,43 +147,8 @@ const AnimacaoManager = (function () {
       // ===== SEQUENCE CONTROL =====
       isSequenceRunning: () => sequenceRunning,
 
-      playSequence: async (seq) => {
-        if (!seq?.length) return;
-
-        for (const name of seq) {
-          await animManager.playAndWait(name);
-        }
-      },
-
-      playAndWait: (name) => {
-        return new Promise((resolve) => {
-          if (!mixer) return resolve();
-
-          const action = actions[name];
-          if (!action) return resolve();
-
-          // 🔒 limpa completamente a action antes de tocar
-          action.stop();
-          action.reset();
-          action.enabled = true;
-          action.paused = false;
-          action.timeScale = 1;
-
-          currentAction = action;
-
-          action.setLoop(THREE.LoopOnce);
-          action.clampWhenFinished = true;
-          action.play();
-
-          const onFinish = (e) => {
-            if (e.action !== action) return;
-
-            mixer.removeEventListener("finished", onFinish);
-            resolve();
-          };
-
-          mixer.addEventListener("finished", onFinish);
-        });
+      playSequence: (seq) => {
+        //não vou implementar isso.
       },
 
       // ===== CONTROLES =====
@@ -148,8 +160,19 @@ const AnimacaoManager = (function () {
         if (currentAction) currentAction.paused = false;
       },
 
-      stopCurrent: () => {
-        if (currentAction) currentAction.stop();
+      stopAll: () => {
+        // Para todas as actions registradas
+        Object.values(actions).forEach((action) => {
+          action.stop();
+          action.enabled = false;
+        });
+
+        // Reseta todos os estados das animações
+        Object.keys(animationStates).forEach((key) => {
+          animationStates[key] = false;
+        });
+
+        currentAction = null;
       },
 
       restartCurrent: () => {
@@ -186,7 +209,7 @@ new GLTFLoader().load("models/RecordPlayer.gltf", (gltf) => {
 
   // detectar objetos importantes
   gltf.scene.traverse((obj) => {
-    console.log(obj.name);
+    //console.log(obj.name);
     if (!obj.isMesh) return;
 
     obj.castShadow = true;
@@ -197,7 +220,7 @@ new GLTFLoader().load("models/RecordPlayer.gltf", (gltf) => {
     // BASE
     if (obj.name === "Base") {
       BASE = obj;
-      console.log("BASE encontrada:", obj);
+      //console.log("BASE encontrada:", obj);
 
       estadoOriginalBase = {
         color: BASE.material.color.clone(),
@@ -210,7 +233,7 @@ new GLTFLoader().load("models/RecordPlayer.gltf", (gltf) => {
     // TAMPA (Cube.017 e Cube.003 no gltf)
     if (obj.name === "DustCover") {
       TAMPA = obj;
-      console.log("TAMPA encontrada:", obj);
+      //console.log("TAMPA encontrada:", obj);
 
       estadoOriginalTampa = {
         color: TAMPA.material.color.clone(),
@@ -290,72 +313,24 @@ function configurarBotoesAnimacao() {
 
   document
     .getElementById("stop")
-    ?.addEventListener("click", () => animManager.stopCurrent());
+    ?.addEventListener("click", () => animManager.stopAll());
 
   document
     .getElementById("restart")
     ?.addEventListener("click", () => animManager.restartCurrent());
   document
     .getElementById("open_close_lid")
-    ?.addEventListener("click", () => toggleAction("OpenCover"));
+    ?.addEventListener("click", () => animManager.toggleAction("OpenCover"));
 
   document
     .getElementById("rotate_stop_spin")
-    ?.addEventListener("click", () => toggleAction("RotateDisk"));
+    ?.addEventListener("click", () => animManager.toggleAction("RotateDisk"));
 
   document
     .getElementById("position_remove_neddle")
-    ?.addEventListener("click", () => toggleAction("PosicionarAgulha"));
-}
-
-// ========================
-// Tocar animações individuais
-// ========================
-
-function toggleAction(name) {
-  const action = animManager.getAction(name);
-  if (!action) return console.warn("Ação não encontrada:", name);
-
-  // ✅ Inicializa estado no singleton
-  if (!animManager.hasAnimationState(name)) {
-    animManager.setAnimationState(name, false);
-  }
-
-  animManager.setCurrentAction(action);
-
-  // ✅ CASO ESPECIAL: animação infinita
-  if (name === "RotateDisk") {
-    if (!animManager.getAnimationState(name)) {
-      action.reset();
-      action.setLoop(THREE.LoopRepeat);
-      action.timeScale = 1;
-      action.play();
-      animManager.setAnimationState(name, true);
-    } else {
-      action.stop();
-      animManager.setAnimationState(name, false);
-    }
-    return;
-  }
-
-  // ✅ CASO NORMAL (abrir / fechar)
-  action.reset();
-  action.clampWhenFinished = true;
-  action.setLoop(THREE.LoopOnce);
-
-  if (!animManager.getAnimationState(name)) {
-    // ABRIR
-    action.timeScale = 1;
-    action.time = 0;
-    action.play();
-    animManager.setAnimationState(name, true);
-  } else {
-    // FECHAR (reverso)
-    action.timeScale = -1;
-    action.time = action.getClip().duration;
-    action.play();
-    animManager.setAnimationState(name, false);
-  }
+    ?.addEventListener("click", () =>
+      animManager.toggleAction("PosicionarAgulha")
+    );
 }
 
 // ========================
