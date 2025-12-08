@@ -7,7 +7,7 @@ Para testar corretamente este projeto, segue os passos abaixo:
 ## Execução do Projeto
 
 - Utiliza a extensão **Live Server** no VS Code para abrir o projeto.
-- Abre o ficheiro `index.html` com o Live Server.
+- O projeto iniciará no index
 - O projeto foi desenvolvido para funcionar corretamente apenas em ambiente local com servidor ativo.
 
 ---
@@ -33,7 +33,7 @@ Na **página de produto**, estão disponíveis as seguintes funcionalidades:
 
 ## Questionário de Caracterização dos Utilizadores
 
-O questionário utilizado no projeto pode ser acedido através do link abaixo:
+O questionário utilizado no projeto pode ser acedido através do link abaixo (caso não funcione, tente abrir em aba anônima):
 
  https://docs.google.com/forms/d/e/1FAIpQLSdhGGEo60fjeg7JWs95mqM_Vdn_i2Y6wl8XqZOQTkmtItZh8Q/viewform?usp=header
 
@@ -41,7 +41,7 @@ O questionário utilizado no projeto pode ser acedido através do link abaixo:
 
 ##  Avaliação Heurística
 
-O documento da avaliação heurística encontra-se disponível aqui:
+O documento da avaliação heurística encontra-se disponível aqui (caso não funcione, tente abrir em aba anônima):
 
  https://docs.google.com/document/d/1eYr6VF-sEC1S6NKTB9G5D8qH309LbwqOJkfjAMpekyE/edit?usp=sharing
 
