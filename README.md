@@ -47,4 +47,9 @@ O documento da avaliação heurística encontra-se disponível aqui (caso não f
 
 ---
 
+##  Lista de requisitos funcionais
+
+O documento de requisitos funcionais encontra-se disponível aqui (caso não funcione, tente abrir em aba anônima):
+https://drive.google.com/file/d/1EZmMAa_ZFjDngDTHBcxMjMFsIOY5qsfK/view?usp=drive_link
+
  Projeto desenvolvido para fins académicos – Avaliação SGI.
