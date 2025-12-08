@@ -59,6 +59,7 @@ const AnimacaoManager = (function () {
     const actions = {};
     let currentAction = null;
     let sequenceRunning = false;
+    const animationStates = {};
 
     return {
       // ===== MIXER =====
@@ -72,6 +73,14 @@ const AnimacaoManager = (function () {
         if (mixer) mixer.update(delta);
       },
 
+      // ===== ANIMATION STATES =====
+      getAnimationState: (name) => animationStates[name],
+
+      setAnimationState: (name, value) => {
+        animationStates[name] = value;
+      },
+
+      hasAnimationState: (name) => animationStates[name] !== undefined,
       // ===== ACTIONS =====
       registerAction: (name, action) => {
         actions[name] = action;
@@ -91,7 +100,44 @@ const AnimacaoManager = (function () {
       // ===== SEQUENCE CONTROL =====
       isSequenceRunning: () => sequenceRunning,
 
-      playSequence: (seq) => {},
+      playSequence: async (seq) => {
+        if (!seq?.length) return;
+
+        for (const name of seq) {
+          await animManager.playAndWait(name);
+        }
+      },
+
+      playAndWait: (name) => {
+        return new Promise((resolve) => {
+          if (!mixer) return resolve();
+
+          const action = actions[name];
+          if (!action) return resolve();
+
+          // 🔒 limpa completamente a action antes de tocar
+          action.stop();
+          action.reset();
+          action.enabled = true;
+          action.paused = false;
+          action.timeScale = 1;
+
+          currentAction = action;
+
+          action.setLoop(THREE.LoopOnce);
+          action.clampWhenFinished = true;
+          action.play();
+
+          const onFinish = (e) => {
+            if (e.action !== action) return;
+
+            mixer.removeEventListener("finished", onFinish);
+            resolve();
+          };
+
+          mixer.addEventListener("finished", onFinish);
+        });
+      },
 
       // ===== CONTROLES =====
       pauseCurrent: () => {
@@ -265,53 +311,50 @@ function configurarBotoesAnimacao() {
 // ========================
 // Tocar animações individuais
 // ========================
-const animationStates = {};
 
 function toggleAction(name) {
-  //if (animManager.isSequenceRunning()) return;
-
   const action = animManager.getAction(name);
   if (!action) return console.warn("Ação não encontrada:", name);
 
-  // Inicializa estado
-  if (animationStates[name] === undefined) {
-    animationStates[name] = false;
+  // ✅ Inicializa estado no singleton
+  if (!animManager.hasAnimationState(name)) {
+    animManager.setAnimationState(name, false);
   }
 
   animManager.setCurrentAction(action);
 
-  // Caso especial: animação infinita (ex: disco girando)
+  // ✅ CASO ESPECIAL: animação infinita
   if (name === "RotateDisk") {
-    if (!animationStates[name]) {
+    if (!animManager.getAnimationState(name)) {
       action.reset();
       action.setLoop(THREE.LoopRepeat);
       action.timeScale = 1;
       action.play();
-      animationStates[name] = true;
+      animManager.setAnimationState(name, true);
     } else {
       action.stop();
-      animationStates[name] = false;
+      animManager.setAnimationState(name, false);
     }
     return;
   }
 
-  // CASO NORMAL (abrir / fechar)
+  // ✅ CASO NORMAL (abrir / fechar)
   action.reset();
   action.clampWhenFinished = true;
   action.setLoop(THREE.LoopOnce);
 
-  if (!animationStates[name]) {
+  if (!animManager.getAnimationState(name)) {
     // ABRIR
     action.timeScale = 1;
     action.time = 0;
     action.play();
-    animationStates[name] = true;
+    animManager.setAnimationState(name, true);
   } else {
     // FECHAR (reverso)
     action.timeScale = -1;
     action.time = action.getClip().duration;
     action.play();
-    animationStates[name] = false;
+    animManager.setAnimationState(name, false);
   }
 }
 
