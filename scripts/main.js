@@ -55,59 +55,45 @@ const AnimacaoManager = (function () {
   let instance;
 
   function init() {
-    const mixers = [];
+    let mixer = null; // UM ÚNICO MIXER
     const actions = {};
     let currentAction = null;
+    let sequenceRunning = false;
 
     return {
-      getAction: (name) => actions[name],
-      currentAction,
+      // ===== MIXER =====
+      setMixer: (m) => {
+        mixer = m;
+      },
 
-      registerMixer: (mixer) => mixers.push(mixer),
+      getMixer: () => mixer,
 
+      update: (delta) => {
+        if (mixer) mixer.update(delta);
+      },
+
+      // ===== ACTIONS =====
       registerAction: (name, action) => {
         actions[name] = action;
         action.clampWhenFinished = true;
         action.loop = THREE.LoopOnce;
       },
 
-      update: (delta) => mixers.forEach((m) => m.update(delta)),
+      getAction: (name) => actions[name],
 
-      playSequence: (seq) => {
-        if (!seq?.length) return;
-        let i = 0;
-
-        const mixer = window.mixer;
-
-        function playNext() {
-          if (i >= seq.length) return;
-
-          const name = seq[i];
-          const action = actions[name];
-          if (!action) return;
-
-          currentAction = action;
-          action.reset();
-          action.play();
-
-          function next(e) {
-            if (e.action === action) {
-              mixer.removeEventListener("finished", next);
-              i++;
-              playNext();
-            }
-          }
-
-          mixer.addEventListener("finished", next);
-        }
-
-        playNext();
+      // ===== CURRENT ACTION =====
+      setCurrentAction: (action) => {
+        currentAction = action;
       },
 
-      startCurrent: () => {
-        if (currentAction) currentAction.paused = true;
-      },
+      getCurrentAction: () => currentAction,
 
+      // ===== SEQUENCE CONTROL =====
+      isSequenceRunning: () => sequenceRunning,
+
+      playSequence: (seq) => {},
+
+      // ===== CONTROLES =====
       pauseCurrent: () => {
         if (currentAction) currentAction.paused = true;
       },
@@ -142,13 +128,14 @@ const animManager = AnimacaoManager.getInstance();
 // ========================
 new GLTFLoader().load("models/RecordPlayer.gltf", (gltf) => {
   // registrar mixer
-  const mixer = new THREE.AnimationMixer(gltf.scene);
-  window.mixer = mixer;
-  animManager.registerMixer(mixer);
+  animManager.setMixer(new THREE.AnimationMixer(gltf.scene));
 
   // registrar animações
   gltf.animations.forEach((clip) => {
-    animManager.registerAction(clip.name, mixer.clipAction(clip));
+    animManager.registerAction(
+      clip.name,
+      animManager.getMixer().clipAction(clip)
+    );
   });
 
   // detectar objetos importantes
@@ -233,9 +220,15 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 }
 
-// configura botões
+// configura botões  aqui ele define a sequencia como seq
 function configurarBotoesAnimacao() {
-  const seq = ["OpenCover", "PosicionarAgulha", "RotateDisk"];
+  const seq = [
+    "OpenCover",
+    "PosicionarAgulha",
+    "RotateDisk",
+    "RemoverAgulha",
+    "CloseCover",
+  ];
 
   document
     .getElementById("start")
@@ -272,28 +265,54 @@ function configurarBotoesAnimacao() {
 // ========================
 // Tocar animações individuais
 // ========================
+const animationStates = {};
+
 function toggleAction(name) {
+  //if (animManager.isSequenceRunning()) return;
+
   const action = animManager.getAction(name);
   if (!action) return console.warn("Ação não encontrada:", name);
 
-  // Se outra ação está ativa, para antes
-  if (animManager.currentAction && animManager.currentAction !== action) {
-    animManager.currentAction.stop();
+  // Inicializa estado
+  if (animationStates[name] === undefined) {
+    animationStates[name] = false;
   }
 
-  // Alterna direção da animação
-  if (!action.isRunning) {
-    action.time = 0;
-    action.timeScale = 1;
-  } else {
-    action.timeScale *= -1;
+  animManager.setCurrentAction(action);
+
+  // Caso especial: animação infinita (ex: disco girando)
+  if (name === "RotateDisk") {
+    if (!animationStates[name]) {
+      action.reset();
+      action.setLoop(THREE.LoopRepeat);
+      action.timeScale = 1;
+      action.play();
+      animationStates[name] = true;
+    } else {
+      action.stop();
+      animationStates[name] = false;
+    }
+    return;
   }
 
+  // CASO NORMAL (abrir / fechar)
   action.reset();
-  action.play();
-  animManager.currentAction = action;
+  action.clampWhenFinished = true;
+  action.setLoop(THREE.LoopOnce);
 
-  action.isRunning = !action.isRunning;
+  if (!animationStates[name]) {
+    // ABRIR
+    action.timeScale = 1;
+    action.time = 0;
+    action.play();
+    animationStates[name] = true;
+  } else {
+    // FECHAR (reverso)
+    action.timeScale = -1;
+    action.time = action.getClip().duration;
+    action.play();
+    animationStates[name] = false;
+  }
 }
 
 // ========================
