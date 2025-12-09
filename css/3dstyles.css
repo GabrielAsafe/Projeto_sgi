@@ -1,10 +1,26 @@
 
+#three-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent;
+}
+#canvas-container {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #111;
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.95) 70%),
+    #000;
   overflow: hidden;
 }
+
 
 #container {
   position: relative;
@@ -12,82 +28,99 @@ body {
   height: 100vh;
 }
 
-#canvas-container {
-  width: 100%;
-  height: 100%;
-}
+
 
 #three-canvas {
   width: 100%;
   height: 100%;
   display: block;
-}
-
-/* ================================
-   SIDEBAR CONTEXT MENU (hover)
+}/* ================================
+   CONTROLOS ESTILO VIDEO PLAYER
 ================================ */
 
 #contextMenu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 60px;             /* largura fechada */
-  height: 100vh;
-  background: #1a1a1a;
-  border-right: 2px solid #333;
-  overflow: hidden;
-  padding-top: 20px;
-  transition: width 0.3s ease;
+  justify-content: space-between;
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 2vw, 18px);;
+
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 999px;
+  border: 1px solid #333;
+
+  width: clamp(320px, 70%, 820px);
+  box-sizing: border-box;
   z-index: 10;
 }
 
-/* Sidebar expandida ao hover */
-#contextMenu:hover {
-  width: 240px;           /* largura aberta */
-}
 
-/* Botões do menu */
-#contextMenu button {
-  display: block;
-  width: 220px;
-  margin: 10px auto;
-  padding: 12px;
-  background: #222;
-  color: #ddd;
+
+/* Botões como ícones */
+#contextMenu .icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
   border: 1px solid #444;
-  border-radius: 6px;
-  font-size: 14px;
-  text-align: left;
-  opacity: 0;                           /* escondidos inicialmente */
-  transform: translateX(-20px);         /* efeito de entrada */
-  transition: all 0.3s ease;
+  background: #222;
+  color: #eee;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   cursor: pointer;
+  padding: 0;
+  font-size: 18px;
+
+  transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s;
 }
 
-/* Botões só aparecem quando hover */
-#contextMenu:hover button {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-/* Hover individual */
-#contextMenu button:hover {
+#contextMenu .icon-btn:hover {
   background: #444;
-  color: #fff;
   border-color: #888;
+  transform: scale(1.1);
 }
 
-/* Linhas divisórias */
-#contextMenu hr {
-  width: 80%;
-  margin: 15px auto;
-  border: 0;
-  border-top: 1px solid #444;
-  opacity: 0;
-  transition: opacity 0.3s;
+/* Responsivo para mobile */
+@media (max-width: 600px) {
+  #contextMenu {
+    bottom: 10px;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  #contextMenu .icon-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
 }
 
-/* Aparecem no hover */
-#contextMenu:hover hr {
-  opacity: 1;
+
+
+#displayText {
+  position: fixed;
+  top: 16px;
+  right: 20px;
+
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+
+  border-radius: 8px;
+  border: 1px solid #444;
+
+  z-index: 20;
+  pointer-events: none;
+  user-select: none;
 }

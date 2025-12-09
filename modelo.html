@@ -5,38 +5,63 @@
     <title>Projeto prático Avaliação SGI</title>
     <link rel="stylesheet" href="/css/3dstyles.css" />
   </head>
-
   <body>
     <div id="container">
       <div id="canvas-container">
+        <div id="displayText">Animação: Nenhuma</div>
+
         <canvas id="three-canvas"></canvas>
       </div>
 
-      <!-- Menu contextual -->
+      <!-- CONTROLOS ESTILO VIDEO PLAYER -->
       <div id="contextMenu">
-        <!--
-        <button id="start">Play sequence</button>
-        <hr />-->
+        <!-- Abrir / Fechar tampa -->
+        <button class="icon-btn" id="open_close_lid" title="Abrir/Fechar Tampa">
+          🔓
+        </button>
 
-        <button id="open_close_lid">Abrir/fechar tampa</button>
-        <button id="rotate_stop_spin">Rodar/parar disco</button>
-        <button id="position_remove_neddle">Posicionar/remover agulha</button>
+        <!-- Rodar / Parar disco -->
+        <button
+          class="icon-btn"
+          id="rotate_stop_spin"
+          title="Rodar/Parar Disco"
+        >
+          💿
+        </button>
 
-        <hr />
-        <button id="pause">Pausar</button>
-        <button id="resume">Continuar</button>
-        <button id="restart">Reiniciar</button>
-        <button id="stop">Parar</button>
-        <hr />
-        <button id="btn_cor">Mudar Cor</button>
-        <button id="btn_material">Mudar textura</button>
-        <button id="btn_repor">Desfazer</button>
+        <!-- Agulha -->
+        <button class="icon-btn" id="position_remove_neddle" title="Agulha">
+          📍
+        </button>
+
+        <!-- Pausa -->
+        <button class="icon-btn" id="pause" title="Pausar">⏸</button>
+
+        <!-- Continuar -->
+        <button class="icon-btn" id="resume" title="Continuar">▶</button>
+
+        <!-- Reiniciar -->
+        <button class="icon-btn" id="restart" title="Reiniciar">⟳</button>
+
+        <!-- Parar -->
+        <button class="icon-btn" id="stop" title="Parar">⛔</button>
+
+        <!-- Mudar Cor -->
+        <button class="icon-btn" id="btn_cor" title="Mudar Cor">🎨</button>
+
+        <!-- Mudar Textura -->
+        <button class="icon-btn" id="btn_material" title="Mudar Textura">
+          🧵
+        </button>
+
+        <!-- Repor -->
+        <button class="icon-btn" id="btn_repor" title="Desfazer">↩</button>
       </div>
     </div>
 
     <!-- Scripts -->
     <script src="/node_modules/es-module-shims.js"></script>
-    <!--<script src="./scripts/overlay.js" type="module"></script>-->
+
     <script type="importmap">
       {
         "imports": {
@@ -45,6 +70,7 @@
         }
       }
     </script>
+
     <script type="module" defer src="./scripts/main.js"></script>
   </body>
 </html>

@@ -12,11 +12,13 @@ const threeCanvas = document.getElementById("three-canvas");
 // renderer
 const renderer = new THREE.WebGLRenderer({
   canvas: threeCanvas,
+  alpha: true,
   antialias: true,
 });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setSize(threeCanvas.clientWidth, threeCanvas.clientHeight);
-renderer.setClearColor(0xffffff);
+renderer.setClearColor(0x000000, 0); // FUNDO TRANSPARENTE
+
 renderer.shadowMap.enabled = true;
 
 // cena
@@ -70,9 +72,14 @@ const AnimacaoManager = (function () {
           animationStates[name] = false;
         }
 
-        currentAction = action;
+        currentAction = name; // ✅ AGORA guardamos o NOME da animação
 
-        // CASO ESPECIAL: DISCO
+        const display = document.getElementById("displayText");
+        if (display) {
+          display.textContent = "Animação: " + name;
+        }
+
+        // ===== CASO ESPECIAL: DISCO =====
         if (name === "RotateDisk") {
           if (!animationStates[name]) {
             action.stop();
@@ -85,11 +92,15 @@ const AnimacaoManager = (function () {
           } else {
             action.stop();
             animationStates[name] = false;
+
+            if (display) {
+              display.textContent = "Animação: Nenhuma";
+            }
           }
           return;
         }
 
-        // CASO NORMAL
+        // ===== CASO NORMAL =====
         action.stop();
         action.reset();
         action.enabled = true;
@@ -106,6 +117,10 @@ const AnimacaoManager = (function () {
           action.time = action.getClip().duration;
           action.play();
           animationStates[name] = false;
+
+          if (display) {
+            display.textContent = "Animação: Nenhuma";
+          }
         }
       },
 
@@ -153,33 +168,46 @@ const AnimacaoManager = (function () {
 
       // ===== CONTROLES =====
       pauseCurrent: () => {
-        if (currentAction) currentAction.paused = true;
+        const display = document.getElementById("displayText");
+        if (currentAction && actions[currentAction]) {
+          actions[currentAction].paused = true;
+          if (display)
+            display.textContent = "Animação pausada: " + currentAction;
+        }
       },
 
       resumeCurrent: () => {
-        if (currentAction) currentAction.paused = false;
+        const display = document.getElementById("displayText");
+        if (currentAction && actions[currentAction]) {
+          actions[currentAction].paused = false;
+          if (display) display.textContent = "Animação: " + currentAction;
+        }
       },
 
       stopAll: () => {
-        // Para todas as actions registradas
         Object.values(actions).forEach((action) => {
           action.stop();
           action.enabled = false;
         });
 
-        // Reseta todos os estados das animações
         Object.keys(animationStates).forEach((key) => {
           animationStates[key] = false;
         });
 
         currentAction = null;
+
+        const display = document.getElementById("displayText");
+        if (display) display.textContent = "Animação: Nenhuma";
       },
 
       restartCurrent: () => {
-        if (currentAction) {
-          currentAction.stop();
-          currentAction.reset();
-          currentAction.play();
+        const display = document.getElementById("displayText");
+        if (currentAction && actions[currentAction]) {
+          actions[currentAction].stop();
+          actions[currentAction].reset();
+          actions[currentAction].play();
+
+          if (display) display.textContent = "Animação: " + currentAction;
         }
       },
     };
@@ -331,6 +359,9 @@ function configurarBotoesAnimacao() {
     ?.addEventListener("click", () =>
       animManager.toggleAction("PosicionarAgulha")
     );
+
+  document.getElementById("displayText").textContent =
+    "Animação: " + animManager.getAction();
 }
 
 // ========================
