@@ -50,7 +50,7 @@ https://drive.google.com/file/d/1s-qUNMVuVuhp5_WS-rg4JPSeQV3vFwuM/view?usp=shari
 ##  Lista de Caracterização de utilizadores(link para o git);  requisitos funcionais; Análise de Utilizadores e Tarefas;
 
 O documento de requisitos funcionais encontra-se disponível aqui (caso não funcione, tente abrir em aba anônima):
-https://drive.google.com/file/d/1EZmMAa_ZFjDngDTHBcxMjMFsIOY5qsfK/view?usp=drive_link
+https://docs.google.com/document/d/1eYr6VF-sEC1S6NKTB9G5D8qH309LbwqOJkfjAMpekyE/edit?usp=sharing
 
 ---
 
