@@ -41,34 +41,26 @@ controls.update();
 
 // luz
 
-
 //luz tipo sol - faz cast de sombras -  valor por definição
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(5, 10, 5);
-cena.add(light);
+let luz = new THREE.DirectionalLight(0xffffff, 1);
+luz.position.set(5, 10, 5);
+cena.add(luz);
 
-let luz_x,luz_y,luz_z, luz_intensidade, luz_distancia , luz_cor, luz_tipo
-//emite luz para todas as direções. 
-luz_tipo == "cone"
+let luz_tipo = "lamp"; // "lamp" ou "cone"
 
-if(luz_tipo === "lamp"){
-  const lamp = new THREE.PointLight(luz_cor, luz_intensidade, luz_distancia);
-  lamp.position.set(luz_x, luz_y, luz_z);
-  cena.add(lamp);
+const luz_cor = 0xffffff;
+const luz_intensidade = 10.0;
+const luz_distancia = 5.0;
 
-}else if(luz_tipo === "cone"){
-// luz direcional com cone
-const spotlight = new THREE.SpotLight(luz_cor, luz_intensidade);
-spotlight.position.set(luz_x,luz_y, luz_z);
-cena.add(spotlight);
+if (luz_tipo === "lamp") {
+  luz = new THREE.PointLight(luz_cor, luz_intensidade, luz_distancia);
+} else if (luz_tipo === "cone") {
+  luz = new THREE.SpotLight(luz_cor, luz_intensidade, luz_distancia);
+  luz.angle = Math.PI / 6;
 }
 
-
-
-
-
-
-
+luz.position.set(1, 0, 0);
+cena.add(luz);
 
 // ========================
 // Variáveis globais
@@ -286,7 +278,7 @@ new GLTFLoader().load("models/RecordPlayer.gltf", (gltf) => {
       };
     }
 
-    // TAMPA 
+    // TAMPA
     if (obj.name === "DustCover") {
       TAMPA = obj;
       //console.log("TAMPA encontrada:", obj);
@@ -320,7 +312,7 @@ function animar() {
 animar();
 
 // ========================
-// FUNÇÕES 
+// FUNÇÕES
 // ========================
 
 // responsividade
@@ -434,12 +426,11 @@ const materiais = {
     displacementMap: carregarTextura(
       "materials/Carpet/Carpet016_1K-JPG_Displacement.jpg"
     ),
-    displacementScale: 0.05, 
+    displacementScale: 0.05,
 
     metalness: 0,
     roughness: 1,
   }),
-
 
   //   ground: new THREE.MeshStandardMaterial({
   //   map: carregarTextura("materials/Ground/Ground095C_1K-JPG_Color.jpg"),
@@ -456,20 +447,15 @@ const materiais = {
   //   displacementMap: carregarTextura(
   //     "materials/Ground/Ground095C_1K-JPG_Displacement.jpg"
   //   ),
-  //   displacementScale: 0.05, 
+  //   displacementScale: 0.05,
 
   //   metalness: 0,
   //   roughness: 1,
   // }),
 
-
-
-
-    pizza: new THREE.MeshStandardMaterial({
+  pizza: new THREE.MeshStandardMaterial({
     map: carregarTextura("materials/Pizza/Pizza001_1K-JPG_Color.jpg"),
-    normalMap: carregarTextura(
-      "materials/Pizza/Pizza001_1K-JPG_NormalGL.jpg"
-    ),
+    normalMap: carregarTextura("materials/Pizza/Pizza001_1K-JPG_NormalGL.jpg"),
     roughnessMap: carregarTextura(
       "materials/Pizza/Pizza001_1K-JPG_Roughness.jpg"
     ),
@@ -480,13 +466,13 @@ const materiais = {
     displacementMap: carregarTextura(
       "materials/Pizza/Pizza001_1K-JPG_Displacement.jpg"
     ),
-    displacementScale: 0, 
+    displacementScale: 0,
 
     metalness: 0,
     roughness: 1,
   }),
 
-    madeira: new THREE.MeshStandardMaterial({
+  madeira: new THREE.MeshStandardMaterial({
     map: carregarTextura("materials/WoodFloor/WoodFloor070_1K-JPG_Color.jpg"),
     normalMap: carregarTextura(
       "materials/WoodFloor/WoodFloor070_1K-JPG_NormalGL.jpg"
@@ -495,17 +481,14 @@ const materiais = {
       "materials/WoodFloor/WoodFloor070_1K-JPG_Roughness.jpg"
     ),
 
-
     displacementMap: carregarTextura(
       "materials/WoodFloor/WoodFloor070_1K-JPG_Displacement.jpg"
     ),
-    displacementScale: 0.05, 
+    displacementScale: 0.05,
 
     metalness: 0,
     roughness: 1,
   }),
-
-
 };
 const listaMateriais = Object.values(materiais);
 
@@ -518,7 +501,6 @@ document.getElementById("btn_material")?.addEventListener("click", () => {
 
   BASE.material = listaMateriais[contadorMaterial];
 });
-
 
 document.getElementById("btn_repor").addEventListener("click", () => {
   if (BASE) {
@@ -534,41 +516,10 @@ document.getElementById("btn_repor").addEventListener("click", () => {
   }
 });
 
-
-
-
-// Atualiza posição da luz e valores exibidos
-document.getElementById("luz_x").addEventListener("input", (e) => {
-  luz.position.x = e.target.value;
-  document.getElementById("valor_x").textContent = e.target.value;
-});
-
-document.getElementById("luz_y").addEventListener("input", (e) => {
-  luz.position.y = e.target.value;
-  document.getElementById("valor_y").textContent = e.target.value;
-});
-
-document.getElementById("luz_z").addEventListener("input", (e) => {
-  luz.position.z = e.target.value;
-  document.getElementById("valor_z").textContent = e.target.value;
-});
-
-document.getElementById("luz_intensidade").addEventListener("input", (e) => {
-  luz.position.z = e.target.value;
-  document.getElementById("valor_z").textContent = e.target.value;
-});
-
-document.getElementById("luz_distancia").addEventListener("input", (e) => {
-  luz.position.z = e.target.value;
-  document.getElementById("valor_z").textContent = e.target.value;
-});
-
-
-
-// Função genérica para sliders
 function setupSlider(sliderId, spanId, callback) {
   const slider = document.getElementById(sliderId);
   const span = document.getElementById(spanId);
+
   slider.addEventListener("input", (e) => {
     const val = parseFloat(e.target.value);
     span.textContent = val;
@@ -576,16 +527,18 @@ function setupSlider(sliderId, spanId, callback) {
   });
 }
 
-// Posicionamento da luz
-setupSlider("luz_x", "valor_x", val => luz.position.x = val);
-setupSlider("luz_y", "valor_y", val => luz.position.y = val);
-setupSlider("luz_z", "valor_z", val => luz.position.z = val);
+// posição
+setupSlider("luz_x", "valor_x", (val) => (luz.position.x = val));
+setupSlider("luz_y", "valor_y", (val) => (luz.position.y = val));
+setupSlider("luz_z", "valor_z", (val) => (luz.position.z = val));
 
-// Intensidade e distância
-setupSlider("luz_intensidade", "valor_intensidade", val => luz.intensity = val);
-setupSlider("luz_distancia", "valor_distancia", val => luz.distance = val);
+// intensidade e distância
+setupSlider(
+  "luz_intensidade",
+  "valor_intensidade",
+  (val) => (luz.intensity = val)
+);
 
-// Color picker
 const corInput = document.getElementById("cor_luz");
 const valorCor = document.getElementById("valor_cor");
 
@@ -593,4 +546,5 @@ corInput.addEventListener("input", (e) => {
   const hex = e.target.value;
   valorCor.textContent = hex;
   luz.color.set(hex);
+  console.log(hex);
 });
